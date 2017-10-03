@@ -35,11 +35,6 @@ abstract class InputAbstract {
         $this->params['name'] = $name;
         return $this;
     }
-    public function err($msg)
-    {
-        $this->params['err'] = $msg;
-        return $this;
-    }
     public function addWrapper($begin, $end)
     {
         $this->params['inputWrapperBegin'] = $begin;
@@ -66,5 +61,30 @@ abstract class InputAbstract {
     public function getName()
     {
         return isset($this->params['name']) ? $this->params['name'] : '';
+    }
+    public function err($msg)
+    {
+        $this->params['err'] = $msg;
+        return $this;
+    }
+    public function errOverOutWrapper()
+    {
+        $this->params['errPosition'] = 'overOut';
+        return $this;
+    }
+    public function errOverInWrapper()
+    {
+        $this->params['errPosition'] = 'overIn';
+        return $this;
+    }
+    public function errUnderInWrapper()
+    {
+        $this->params['errPosition'] = 'underIn';
+        return $this;
+    }
+    public function errUnderOutWrapper()
+    {
+        $this->params['errPosition'] = 'underOut';
+        return $this;
     }
 }

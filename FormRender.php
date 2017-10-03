@@ -14,6 +14,7 @@ class FormRender implements FormRenderInterface {
     protected $endWrap = '';
     protected $beginErrWrap = '';
     protected $endErrWrap = '';
+    protected $errPosition = 'overOut';
     protected static $elementCounter = 0;
 
     public function addWrapperInput($begin, $end)
@@ -65,6 +66,53 @@ class FormRender implements FormRenderInterface {
         }
         return implode(' ', $attributs);
     }
+    protected function leaveError($item)
+    {
+        $beginErrWrap = isset($item['inputErrWrapperBegin']) ? $item['inputErrWrapperBegin'] : $this->beginErrWrap;
+        $endErrWrap = isset($item['inputErrWrapperEnd']) ? $item['inputErrWrapperEnd'] : $this->endErrWrap;
+        if (isset($item['err'])) {
+            echo $beginErrWrap . PHP_EOL;
+            echo $item['err'] . PHP_EOL;
+            echo $endErrWrap  . PHP_EOL;
+        }
+    }
+    public function errOverOutWrapper()
+    {
+        $this->errPosition = 'overOut';
+    }
+    public function errOverInWrapper()
+    {
+        $this->errPosition = 'overIn';
+    }
+    public function errUnderInWrapper()
+    {
+        $this->errPosition = 'underIn';
+    }
+    public function errUnderOutWrapper()
+    {
+        $this->errPosition = 'underOut';
+    }
+    protected function getErrPosition($item)
+    {
+        $position = isset($item['errPosition']) ? $item['errPosition'] : $this->errPosition;
+        return $position;
+    }
+    protected function leaveErrorOverOutWrapper($item)
+    {
+        if ($this->getErrPosition($item) =='overOut') $this->leaveError($item);
+    }
+    protected function leaveErrorOverInsideWrapper($item)
+    {
+        if ($this->getErrPosition($item) =='overIn') $this->leaveError($item);
+    }
+    protected function leaveErrorUnderInsideWrapper($item)
+    {
+        if ($this->getErrPosition($item) =='underIn') $this->leaveError($item);
+    }
+    protected function leaveErrorUnderOutWrapper($item)
+    {
+        if ($this->getErrPosition($item) =='underOut') $this->leaveError($item);
+    }
     protected function renderItem($item)
     {
         self::$elementCounter++;
@@ -74,17 +122,11 @@ class FormRender implements FormRenderInterface {
         ob_start();
 
         $beginWrap = isset($item['inputWrapperBegin']) ? $item['inputWrapperBegin'] : $this->beginWrap;
-        $beginErrWrap = isset($item['inputErrWrapperBegin']) ? $item['inputErrWrapperBegin'] : $this->beginErrWrap;
-        $endErrWrap = isset($item['inputErrWrapperEnd']) ? $item['inputErrWrapperEnd'] : $this->endErrWrap;
         $endWrap = isset($item['inputWrapperEnd']) ? $item['inputWrapperEnd'] : $this->endWrap;
 
+        $this->leaveErrorOverOutWrapper($item);
         echo $beginWrap . PHP_EOL;
-        if (isset($item['err'])) {
-            echo $beginErrWrap . PHP_EOL;
-            echo $item['err'] . PHP_EOL;
-            echo $endErrWrap  . PHP_EOL;
-        }
-
+        $this->leaveErrorOverInsideWrapper($item);
         switch ($item['inputType']) {
             case 'group' :
                 switch ($item['type']) {
@@ -112,8 +154,9 @@ class FormRender implements FormRenderInterface {
                 $this->renderTextarea($item);
                 break;
         }
-
+        $this->leaveErrorUnderInsideWrapper($item);
         echo  PHP_EOL . $endWrap . PHP_EOL;
+        $this->leaveErrorUnderOutWrapper($item);
         return ob_get_clean();
     }
     protected function renderRadio($item)

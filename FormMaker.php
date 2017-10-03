@@ -92,6 +92,17 @@ class FormMaker
         $this->params['inputs'][] = $obj;
         return $obj;
     }
+    public function getInputObjects()
+    {
+        return $this->params['inputs'];
+    }
+    public function getInputObjectByName($name)
+    {
+        foreach ($this->getInputObjects() as $obj) {
+            return $obj->getName() == $name;
+        }
+        return false;
+    }
     public function getRender(FormRenderInterface $obj)
     {
         return $obj->getRender($this->params);
