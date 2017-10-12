@@ -12,20 +12,40 @@ namespace FM;
 class FormRender implements FormRenderInterface {
     protected $beginWrap = '';
     protected $endWrap = '';
+    protected $beginItemWrap = '';
+    protected $endItemWrap = '';
     protected $beginErrWrap = '';
     protected $endErrWrap = '';
     protected $errPosition = 'overOut';
+    protected $beginLabelWrap = '';
+    protected $endLabelWrap = '';
+    protected $defItemParams = array();
+
     protected static $elementCounter = 0;
 
-    public function addWrapperInput($begin, $end)
+    public function addItemWrapper($begin, $end)
+    {
+        $this->beginItemWrap = $begin;
+        $this->endItemWrap = $end;
+    }
+    public function addWrapper($begin, $end)
     {
         $this->beginWrap = $begin;
         $this->endWrap = $end;
+    }
+    public function addDefaultParam($paramName, $paramValue)
+    {
+        $this->defItemParams[$paramName] = $paramValue;
     }
     public function addErrorWrapper($begin, $end)
     {
         $this->beginErrWrap = $begin;
         $this->endErrWrap = $end;
+    }
+    public function addLabelWrapper($begin, $end)
+    {
+        $this->beginLabelWrap = $begin;
+        $this->endLabelWrap = $end;
     }
     public function getRender($params)
     {
@@ -44,7 +64,7 @@ class FormRender implements FormRenderInterface {
     protected function getAttributs($params)
     {
         $attributs = array();
-        $attrnames = array('id', 'class', 'action', 'enctype', 'method', 'placeholder', 'required', 'name', 'value', 'checked', 'selected', 'type', 'customattribute');
+        $attrnames = array('id', 'class', 'action', 'enctype', 'method', 'placeholder', 'required', 'name', 'size', 'value', 'checked', 'selected', 'type', 'customattribute');
         foreach ($attrnames as $attrname) {
             if (isset($params[$attrname])) {
                 if ($attrname == 'checked' || $attrname == 'selected' || $attrname == 'required') {
@@ -113,9 +133,19 @@ class FormRender implements FormRenderInterface {
     {
         if ($this->getErrPosition($item) =='underOut') $this->leaveError($item);
     }
+    protected function setDefaultParams($item)
+    {
+        foreach ($this->defItemParams as $parName => $parValue) {
+            if (!isset($item[$parName])) $item[$parName] = $parValue;
+        }
+        return $item;
+    }
     protected function renderItem($item)
     {
         self::$elementCounter++;
+
+        $item = $this->setDefaultParams($item);
+
         if (!isset($item['class'])) $item['class'] = array();
         $item['class'][] = str_replace('\\', '_', __CLASS__) . '_Element';
         $item['class'][] = str_replace('\\', '_', __CLASS__) . '_Element' . self::$elementCounter;
@@ -124,9 +154,14 @@ class FormRender implements FormRenderInterface {
         $beginWrap = isset($item['inputWrapperBegin']) ? $item['inputWrapperBegin'] : $this->beginWrap;
         $endWrap = isset($item['inputWrapperEnd']) ? $item['inputWrapperEnd'] : $this->endWrap;
 
+        $beginInputWrap = isset($item['beginWrapperItem']) ? $item['beginWrapperItem'] : $this->beginItemWrap;
+        $endInputWrap = isset($item['endWrapperItem']) ? $item['endWrapperItem'] : $this->endItemWrap;
+
         $this->leaveErrorOverOutWrapper($item);
         echo $beginWrap . PHP_EOL;
+        if (isset($item['labelName']) && $item['labelName']) echo $this->beginLabelWrap . $item['labelName'] . $this->endLabelWrap;
         $this->leaveErrorOverInsideWrapper($item);
+        echo $beginInputWrap . PHP_EOL;
         switch ($item['inputType']) {
             case 'group' :
                 switch ($item['type']) {
@@ -154,6 +189,7 @@ class FormRender implements FormRenderInterface {
                 $this->renderTextarea($item);
                 break;
         }
+        echo $endInputWrap . PHP_EOL;
         $this->leaveErrorUnderInsideWrapper($item);
         echo  PHP_EOL . $endWrap . PHP_EOL;
         $this->leaveErrorUnderOutWrapper($item);

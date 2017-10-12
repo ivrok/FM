@@ -15,6 +15,11 @@ abstract class InputAbstract {
     {
 
     }
+    public function label($name)
+    {
+        $this->params['labelName'] = $name;
+        return $this;
+    }
     public function getParams()
     {
         return $this->params;
@@ -33,6 +38,12 @@ abstract class InputAbstract {
     public function name($name)
     {
         $this->params['name'] = $name;
+        return $this;
+    }
+    public function addItemWrap($begin, $end)
+    {
+        $this->params['beginWrapperItem'] = $begin;
+        $this->params['endWrapperItem'] = $end;
         return $this;
     }
     public function addWrapper($begin, $end)
